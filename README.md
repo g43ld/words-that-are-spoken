@@ -30,10 +30,10 @@ Audio is processed locally on the user's machine. The application does not send 
 - A multilingual Whisper.cpp model at:
 
   ```text
-  models/ggml-base.bin
+  models/ggml-small.bin
   ```
 
-The application currently expects the multilingual base model. A larger multilingual model can be used by changing the model filename in `main.go` and placing the matching file in `models/`.
+The application currently expects the multilingual small model. A different multilingual model can be used by changing the model filename in `main.go` and placing the matching file in `models/`.
 
 ## Running from source
 
@@ -98,16 +98,16 @@ To download the multilingual base model on Windows:
 
 ```powershell
 Invoke-WebRequest `
-  -Uri "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin?download=true" `
-  -OutFile "models\ggml-base.bin"
+  -Uri "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin?download=true" `
+  -OutFile "models\ggml-small.bin"
 ```
 
 On Linux:
 
 ```bash
 curl -L \
-  "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin?download=true" \
-  -o models/ggml-base.bin
+  "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin?download=true" \
+  -o models/ggml-small.bin
 ```
 
 Models with the `.en` suffix are English-only. Use a model without `.en` for French, English, Russian, Spanish, and automatic language detection.

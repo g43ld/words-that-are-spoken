@@ -29,6 +29,7 @@ const (
 	host              = "127.0.0.1"
 	maxRequestBytes   = 50 * 1024 * 1024
 	transcriptionTime = 10 * time.Minute
+	quitShutdownDelay = 2 * time.Second
 )
 
 var (
@@ -171,7 +172,7 @@ func locateResources() (resourcePaths, error) {
 	resources := resourcePaths{
 		ffmpeg:  filepath.Join(base, "bin", "ffmpeg", ffmpegName),
 		whisper: filepath.Join(base, "bin", "whisper", whisperName),
-		model:   filepath.Join(base, "models", "ggml-base.bin"),
+		model:   filepath.Join(base, "models", "ggml-small.bin"),
 	}
 
 	for name, path := range map[string]string{
@@ -281,7 +282,10 @@ func (app *application) handleQuit(w http.ResponseWriter, _ *http.Request) {
 		Closed:        true,
 		ClosedMessage: "Application closed. You can close this tab.",
 	})
-	app.requestStop()
+
+	// Keep the server alive briefly so the browser can fetch the external
+	// stylesheet referenced by the closed page before Whisper is stopped.
+	time.AfterFunc(quitShutdownDelay, app.requestStop)
 }
 
 func (app *application) traceability() string {
