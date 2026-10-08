@@ -1,0 +1,27 @@
+# Release packages and generated distribution folders
+/dist/
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# External native dependencies and large model files
+/bin/
+/models/
+
+# Go build and test artifacts
+.go-build-cache/
+.gocache/
+*.test
+wtas
+wtas.exe
+
+# Temporary logs and local test artifacts
+*.log
+.tmp/
+
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
