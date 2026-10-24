@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	appName           = "WTAS - Words That Are Spoken"
+	appName           = "WTAS (Words That Are Spoken)"
 	host              = "127.0.0.1"
 	maxRequestBytes   = 50 * 1024 * 1024
 	transcriptionTime = 10 * time.Minute
@@ -351,6 +351,7 @@ func languageFromRequest(r *http.Request) string {
 	if err != nil {
 		return "en"
 	}
+	
 	return language
 }
 
@@ -366,6 +367,7 @@ func requestedLanguage(value string) (string, error) {
 			message: "Unsupported language. Choose English, French, Spanish, Russian, or I don't know.",
 		}
 	}
+
 	return language, nil
 }
 
@@ -446,6 +448,7 @@ func writeBase64Input(tempDir, value string) (string, error) {
 
 	inputPath := filepath.Join(tempDir, "input.audio")
 	output, err := os.Create(inputPath)
+
 	if err != nil {
 		return "", fmt.Errorf("create temporary input: %w", err)
 	}
@@ -453,9 +456,11 @@ func writeBase64Input(tempDir, value string) (string, error) {
 	decoder := base64.NewDecoder(base64.StdEncoding.Strict(), strings.NewReader(value))
 	_, copyErr := io.Copy(output, decoder)
 	closeErr := output.Close()
+
 	if copyErr != nil {
 		return "", &clientError{status: http.StatusBadRequest, message: "The supplied Base64 audio is invalid."}
 	}
+
 	if closeErr != nil {
 		return "", fmt.Errorf("close temporary input: %w", closeErr)
 	}
@@ -464,6 +469,7 @@ func writeBase64Input(tempDir, value string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("inspect temporary input: %w", err)
 	}
+
 	if info.Size() == 0 {
 		return "", &clientError{status: http.StatusBadRequest, message: "The supplied Base64 contains no audio."}
 	}
@@ -523,6 +529,7 @@ func normalizeEncodedAudio(path string) error {
 	if err := os.WriteFile(path, audio, 0600); err != nil {
 		return fmt.Errorf("write normalized audio: %w", err)
 	}
+
 	return nil
 }
 
@@ -537,6 +544,7 @@ func isBinaryOctetText(data []byte) (bool, int) {
 			return false, 0
 		}
 	}
+
 	return true, digitCount
 }
 
@@ -555,12 +563,14 @@ func stripDataURL(value string) (string, error) {
 
 func audioExtension(filename string) (string, error) {
 	extension := strings.ToLower(filepath.Ext(filename))
+
 	if !supportedAudioExtensions[extension] {
 		return "", &clientError{
 			status:  http.StatusBadRequest,
 			message: "Unsupported audio format. Use MP3, M4A, WAV, WebM, OGG, or FLAC.",
 		}
 	}
+
 	return extension, nil
 }
 
@@ -584,6 +594,7 @@ func (app *application) convertToWav(ctx context.Context, inputPath, outputPath 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("ffmpeg: %w: %s", err, truncate(stderr.String(), 2000))
 	}
+
 	return nil
 }
 
@@ -592,23 +603,29 @@ func (app *application) sendToWhisper(ctx context.Context, wavPath, language str
 	if err != nil {
 		return "", fmt.Errorf("open WAV: %w", err)
 	}
+
 	defer audio.Close()
 
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
 	part, err := writer.CreateFormFile("file", "audio.wav")
+
 	if err != nil {
 		return "", fmt.Errorf("create Whisper upload: %w", err)
 	}
+
 	if _, err := io.Copy(part, audio); err != nil {
 		return "", fmt.Errorf("copy WAV to Whisper upload: %w", err)
 	}
+
 	if err := writer.WriteField("response_format", "json"); err != nil {
 		return "", fmt.Errorf("create Whisper request: %w", err)
 	}
+
 	if err := writer.WriteField("language", language); err != nil {
 		return "", fmt.Errorf("create Whisper language field: %w", err)
 	}
+
 	if err := writer.Close(); err != nil {
 		return "", fmt.Errorf("close Whisper upload: %w", err)
 	}
@@ -617,12 +634,14 @@ func (app *application) sendToWhisper(ctx context.Context, wavPath, language str
 	if err != nil {
 		return "", fmt.Errorf("create Whisper request: %w", err)
 	}
+
 	request.Header.Set("Content-Type", writer.FormDataContentType())
 
 	response, err := (&http.Client{Timeout: transcriptionTime}).Do(request)
 	if err != nil {
 		return "", fmt.Errorf("call Whisper: %w", err)
 	}
+
 	defer response.Body.Close()
 
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
@@ -632,6 +651,7 @@ func (app *application) sendToWhisper(ctx context.Context, wavPath, language str
 	var result struct {
 		Text string `json:"text"`
 	}
+
 	if err := json.NewDecoder(io.LimitReader(response.Body, 1<<20)).Decode(&result); err != nil {
 		return "", fmt.Errorf("decode Whisper response: %w", err)
 	}
@@ -641,10 +661,13 @@ func (app *application) sendToWhisper(ctx context.Context, wavPath, language str
 
 func (app *application) startWhisper() error {
 	listener, err := net.Listen("tcp", net.JoinHostPort(host, "0"))
+
 	if err != nil {
 		return fmt.Errorf("allocate Whisper port: %w", err)
 	}
+
 	port := listener.Addr().(*net.TCPAddr).Port
+
 	if err := listener.Close(); err != nil {
 		return fmt.Errorf("release Whisper port: %w", err)
 	}
@@ -658,6 +681,7 @@ func (app *application) startWhisper() error {
 	)
 	app.whisper.Stdout = os.Stdout
 	app.whisper.Stderr = os.Stderr
+
 	if err := app.whisper.Start(); err != nil {
 		return fmt.Errorf("start Whisper: %w", err)
 	}
@@ -667,16 +691,21 @@ func (app *application) startWhisper() error {
 
 func (app *application) waitForWhisper() error {
 	client := &http.Client{Timeout: time.Second}
+
 	deadline := time.Now().Add(30 * time.Second)
+
 	for time.Now().Before(deadline) {
 		response, err := client.Get(app.whisperURL + "/")
+
 		if err == nil {
 			response.Body.Close()
+
 			if response.StatusCode >= 200 && response.StatusCode < 300 {
 				log.Printf("Whisper ready")
 				return nil
 			}
 		}
+
 		time.Sleep(250 * time.Millisecond)
 	}
 
@@ -687,9 +716,11 @@ func (app *application) stopWhisper() {
 	if app.whisper == nil || app.whisper.Process == nil {
 		return
 	}
+
 	if err := app.whisper.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
 		log.Printf("stop Whisper: %v", err)
 	}
+
 	_ = app.whisper.Wait()
 }
 
@@ -703,11 +734,13 @@ func (app *application) shutdown() {
 		_ = app.server.Shutdown(ctx)
 		cancel()
 	}
+
 	app.stopWhisper()
 }
 
 func openBrowser(url string) {
 	var command *exec.Cmd
+
 	switch runtime.GOOS {
 	case "windows":
 		command = exec.Command("cmd", "/c", "start", "", url)
@@ -716,10 +749,12 @@ func openBrowser(url string) {
 	default:
 		command = exec.Command("xdg-open", url)
 	}
+
 	if err := command.Start(); err != nil {
 		log.Printf("open browser: %v", err)
 		return
 	}
+
 	_ = command.Process.Release()
 }
 
@@ -727,6 +762,7 @@ func truncate(value string, max int) string {
 	if len(value) <= max {
 		return value
 	}
+
 	return value[:max] + "..."
 }
 
@@ -737,9 +773,11 @@ type limitedBuffer struct {
 
 func (b *limitedBuffer) Write(data []byte) (int, error) {
 	originalLength := len(data)
+
 	if b.limit == 0 {
 		b.limit = 2000
 	}
+
 	remaining := b.limit - b.buffer.Len()
 	if remaining > 0 {
 		if len(data) > remaining {
@@ -747,6 +785,7 @@ func (b *limitedBuffer) Write(data []byte) (int, error) {
 		}
 		_, _ = b.buffer.Write(data)
 	}
+
 	return originalLength, nil
 }
 
