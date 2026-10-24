@@ -1,6 +1,6 @@
-# Words That Are Spoken
+# WTAS (Words That Are Spoken)
 
-Words That Are Spoken is a local audio-to-text application. It accepts an audio file or Base64-encoded audio, converts the audio to the format required by Whisper.cpp, and displays the transcription in a local browser window.
+WTAS is a local audio-to-text application. It accepts an audio file or Base64-encoded audio, converts the audio to the format required by Whisper.cpp, and displays the transcription in a local browser window.
 
 Audio is processed locally on the user's machine. The application does not send audio to a remote service or require an internet connection while transcribing.
 

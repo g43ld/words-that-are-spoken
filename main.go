@@ -351,7 +351,7 @@ func languageFromRequest(r *http.Request) string {
 	if err != nil {
 		return "en"
 	}
-	
+
 	return language
 }
 
