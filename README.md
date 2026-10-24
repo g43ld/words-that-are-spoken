@@ -144,3 +144,7 @@ This project is made possible by the work of the open-source projects below. Tha
 ## License
 
 Words That Are Spoken is distributed together with external open-source software and model files that have their own licenses. Review the respective licenses for Whisper.cpp, FFmpeg, and the selected Whisper model before redistributing a package.
+
+## Screenshots
+
+![Main screenshot of the project](/public/screenshot_main.png?raw=true)
