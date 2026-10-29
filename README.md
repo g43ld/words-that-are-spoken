@@ -44,7 +44,7 @@ The application resolves `bin/` and `models/` relative to the executable locatio
 From PowerShell at the project root:
 
 ```powershell
-go build -o wtas.exe .
+go build -o wtas.exe ./src
 .\wtas.exe
 ```
 
@@ -68,7 +68,7 @@ dist/windows/
 From a shell at the project root:
 
 ```bash
-go build -o wtas .
+go build -o wtas ./src
 ./wtas
 ```
 
@@ -94,7 +94,7 @@ The application opens the local interface automatically. If it cannot open a bro
 
 The application starts the bundled Whisper.cpp server automatically and passes it the model path. It uses a dynamically selected localhost port for the internal Whisper server.
 
-To download the multilingual base model on Windows:
+To download the multilingual small model on Windows:
 
 ```powershell
 Invoke-WebRequest `
@@ -122,17 +122,18 @@ The application starts and stops its local Whisper.cpp process together with the
 
 ```text
 words-that-are-spoken/
-├── main.go                 # Go application
-├── main_test.go            # Standard-library tests
-├── views/                  # Embedded HTML templates
-├── public/                 # Embedded CSS
+├── src/                    # Go source and embedded UI assets
+│   ├── main.go             # Application startup
+│   ├── main_test.go        # Standard-library tests
+│   ├── views/              # Embedded HTML templates
+│   └── public/             # Embedded CSS
 ├── bin/                    # External FFmpeg and Whisper.cpp resources
 ├── models/                 # External Whisper.cpp models
 ├── examples/               # Example audio inputs
 └── scripts/                # Windows and Linux packaging scripts
 ```
 
-The `views/` and `public/` directories are embedded into the executable with Go's `embed` package. The `bin/` and `models/` directories remain external so native binaries, DLLs, and large model files can be packaged separately.
+The `src/views/` and `src/public/` directories are embedded into the executable with Go's `embed` package. The `bin/` and `models/` directories remain external so native binaries, DLLs, and large model files can be packaged separately.
 
 ## Acknowledgements
 
@@ -147,4 +148,4 @@ Words That Are Spoken is distributed together with external open-source software
 
 ## Screenshots
 
-![Main screenshot of the project](/public/screenshot_main.png?raw=true)
+![Main screenshot of the project](/src/public/screenshot_main.png?raw=true)
